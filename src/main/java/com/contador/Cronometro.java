@@ -12,6 +12,7 @@ public class Cronometro extends Thread{
     private JButton btnPausarCronometro = new JButton("Detener");
     private JButton btnReiniciarCronometro = new JButton("Reiniciar");
 
+    private long tiempoGuardado, tiempoInicio, tiempoActual ;
     private int milisegundos, segundos, minutos, horas ;
     private boolean estaPausado = true ;
 
@@ -44,10 +45,12 @@ public class Cronometro extends Thread{
             try{
 
                 if(!estaPausado){
-                    actualizarTiempo();
+                    tiempoActual = System.nanoTime() ;
+                    long tiempoPasado = (tiempoGuardado + (tiempoActual - tiempoInicio)) ;
+                    actualizarTiempo(tiempoPasado);
                 }
-                
-                Thread.sleep(10);
+
+                Thread.sleep(TIEMPO_ESPERA);
             }catch (InterruptedException e) {
                 System.out.println("Cronómetro interrumpido");
             }
@@ -56,35 +59,29 @@ public class Cronometro extends Thread{
 
     public void inicializarCronometro(){
         if(estaPausado) {
+            tiempoInicio = System.nanoTime() ;
             estaPausado = false ;
         }
     }
     private void detenerCronometro(){
+
         if(!estaPausado) {
             estaPausado = true ;
+            tiempoGuardado += tiempoActual - tiempoInicio ; // chance usar el System.nanoTime() ;
         }
     }
     private void reiniciarCronometro(){
-
+        tiempoGuardado = 0 ;
         estaPausado = true ;
         milisegundos = segundos = minutos = horas = 0;
         actualizarEtiqueta();
     }
 
-    private void actualizarTiempo(){
-        milisegundos += 10 ;
-        if(milisegundos == 1000){
-            segundos ++ ;
-            milisegundos = 0;
-        }
-        if(segundos == 60){
-            segundos = 0;
-            minutos ++ ;
-        }
-        if(minutos == 60){
-            minutos = 0;
-            horas ++;
-        }
+    private void actualizarTiempo(long tiempoPasado){
+        milisegundos = (int) (tiempoPasado / 1_000_000) % 1000;
+        segundos = (int) (tiempoPasado / 1_000_000_000) % 60;
+        minutos = (int) (tiempoPasado / 60_000_000_000L) % 60;
+        horas = (int) (tiempoPasado / 3_600_000_000_000L);
         actualizarEtiqueta() ;
     }
 
